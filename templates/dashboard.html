@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - AI Language Learning Assistant</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .section { margin-bottom: 40px; }
+    input, textarea, button { padding: 8px; font-size: 14px; }
+    textarea { width: 100%; height: 80px; }
+  </style>
+</head>
+<body>
+  <h1>Language Learning Dashboard</h1>
+  <h2>Learning: {{ language }}</h2>
+
+  <!-- Exercise Generation Section -->
+  <div class="section" id="exercise-section">
+    <h3>Generate a Language Exercise</h3>
+    <form id="exercise-form">
+      <label for="prompt">Enter a topic or starting phrase (in English):</label><br>
+      <input type="text" id="prompt" name="prompt" placeholder="e.g., Ordering food at a restaurant" required>
+      <button type="submit">Generate Exercise</button>
+    </form>
+    <p><strong>Exercise:</strong></p>
+    <p id="exercise-result"></p>
+  </div>
+
+  <!-- Translation Section -->
+  <div class="section" id="translation-section">
+    <h3>Translate a Phrase</h3>
+    <form id="translate-form">
+      <label for="text">Enter English text to translate into {{ language }}:</label><br>
+      <textarea id="text" name="text" required></textarea>
+      <button type="submit">Translate</button>
+    </form>
+    <p><strong>Translation:</strong></p>
+    <p id="translation-result"></p>
+  </div>
+
+  <!-- Speech Recognition Section -->
+  <div class="section" id="speech-section">
+    <h3>Pronunciation Feedback</h3>
+    <p>Upload an audio file (WAV format) of you speaking the language.</p>
+    <form id="speech-form" enctype="multipart/form-data">
+      <input type="file" id="audio_file" name="audio_file" accept=".wav" required>
+      <button type="submit">Submit Audio</button>
+    </form>
+    <p><strong>Transcription:</strong></p>
+    <p id="speech-result"></p>
+  </div>
+
+  <script>
+    // Exercise generation AJAX call.
+    $("#exercise-form").submit(function(e) {
+      e.preventDefault();
+      $.ajax({
+        type: "POST",
+        url: "{{ url_for('generate_exercise') }}",
+        data: { prompt: $("#prompt").val() },
+        success: function(response) {
+          $("#exercise-result").text(response.exercise);
+        }
+      });
+    });
+
+    // Translation AJAX call.
+    $("#translate-form").submit(function(e) {
+      e.preventDefault();
+      $.ajax({
+        type: "POST",
+        url: "{{ url_for('translate') }}",
+        data: { 
+          text: $("#text").val(),
+          language: "{{ language }}"
+        },
+        success: function(response) {
+          $("#translation-result").text(response.translation);
+        }
+      });
+    });
+
+    // Speech recognition AJAX call.
+    $("#speech-form").submit(function(e) {
+      e.preventDefault();
+      var formData = new FormData();
+      formData.append("audio_file", $("#audio_file")[0].files[0]);
+      $.ajax({
+        type: "POST",
+        url: "{{ url_for('speech_recognition_endpoint') }}",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+          $("#speech-result").text(response.transcription);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
